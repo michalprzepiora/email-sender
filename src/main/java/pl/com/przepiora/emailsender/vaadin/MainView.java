@@ -3,13 +3,20 @@ package pl.com.przepiora.emailsender.vaadin;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Label;
+import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.notification.Notification.Position;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import pl.com.przepiora.emailsender.model.EmailMessageForm;
+import pl.com.przepiora.emailsender.service.EmailSender;
 
 @Route
+@Component
 public class MainView extends VerticalLayout {
 
   private TextField to;
@@ -20,9 +27,28 @@ public class MainView extends VerticalLayout {
   private Button clear;
   private HorizontalLayout sendClearButtons;
   private Label bottom;
+  private EmailMessageForm emailMessageForm;
+
+  @Autowired
+  private EmailSender emailSender;
 
   public MainView() {
     initializeComponents();
+
+    send.addClickListener(e -> {
+      emailMessageForm = EmailMessageForm.builder()
+          .to(to.getValue())
+          .from(from.getValue())
+          .subject(subject.getValue())
+          .message(message.getValue())
+          .build();
+      emailSender.sendMessage(emailMessageForm);
+      Notification.show("Email was send.", 3000, Position.MIDDLE);
+    });
+
+    clear.addClickListener(e -> {
+      Notification.show("Email was send.", 3000, Position.MIDDLE);
+    });
 
     this.add(new H3("On line E-mail sender"));
     this.add(to, from, subject, message, sendClearButtons, bottom);
