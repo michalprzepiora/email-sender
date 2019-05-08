@@ -15,6 +15,9 @@ import org.springframework.stereotype.Component;
 import pl.com.przepiora.emailsender.model.EmailMessageForm;
 import pl.com.przepiora.emailsender.service.EmailSender;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Route
 @Component
 public class MainView extends VerticalLayout {
@@ -34,6 +37,7 @@ public class MainView extends VerticalLayout {
 
   public MainView() {
     initializeComponents();
+    ExecutorService exec = Executors.newSingleThreadExecutor();
 
     send.addClickListener(e -> {
       emailMessageForm = EmailMessageForm.builder()
@@ -42,8 +46,9 @@ public class MainView extends VerticalLayout {
           .subject(subject.getValue())
           .message(message.getValue())
           .build();
-      emailSender.sendMessage(emailMessageForm);
-      Notification.show("Email was send.", 3000, Position.MIDDLE);
+      emailSender.setEmailMessageForm(emailMessageForm);
+      exec.execute(emailSender);
+            Notification.show("Email was send.", 3000, Position.MIDDLE);
     });
 
     clear.addClickListener(e -> {
