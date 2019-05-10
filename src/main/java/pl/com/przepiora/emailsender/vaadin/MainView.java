@@ -10,6 +10,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import pl.com.przepiora.emailsender.model.EmailMessageForm;
@@ -20,6 +21,7 @@ import java.util.concurrent.Executors;
 
 @Route
 @Component
+@UIScope
 public class MainView extends VerticalLayout {
 
   private TextField to;
@@ -75,7 +77,7 @@ public class MainView extends VerticalLayout {
     send = new Button("Send");
     clear = new Button("Clear");
     sendClearButtons = new HorizontalLayout(send, clear);
-    bottom = new Label("Michał Przepióra - Github: xxxxxx 2019");
+    bottom = new Label("Michał Przepióra - Github: v :) 2019");
     bottom.getStyle().set("font-size", "10px");
   }
 }
