@@ -1,6 +1,8 @@
 package pl.com.przepiora.emailsender.vaadin;
 
+import com.vaadin.flow.component.ItemLabelGenerator;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
@@ -32,7 +34,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class MainView extends VerticalLayout {
 
-  private TextField to;
+  private ComboBox<Contact> to;
   private TextField from;
   private TextField subject;
   private TextArea message;
@@ -52,14 +54,12 @@ public class MainView extends VerticalLayout {
   private Button editContact;
   private Button deleteContact;
   private ExecutorService exec;
-
-
-  @Autowired
   private EmailSender emailSender;
   private ContactService contactService;
 
   @Autowired
-  public MainView(ContactService contactService) {
+  public MainView(ContactService contactService, EmailSender emailSender) {
+    this.emailSender = emailSender;
     this.contactService = contactService;
     initializeComponents();
     exec = Executors.newSingleThreadExecutor();
@@ -72,14 +72,19 @@ public class MainView extends VerticalLayout {
   }
 
   private void sendEmail() {
+
     emailMessageForm = EmailMessageForm.builder()
-        .to(to.getValue())
+        .to(to.getValue().getEmail())
         .from(from.getValue())
         .subject(subject.getValue())
         .message(message.getValue())
         .build();
-    emailSender.setEmailMessageForm(emailMessageForm);
-    exec.execute(emailSender);
+    try {
+      emailSender.setEmailMessageForm(emailMessageForm);
+      exec.execute(emailSender);
+    } catch (Exception e) {
+      Notification.show("Email was not send. Please  try again", 6000, Position.MIDDLE);
+    }
     Notification.show("Email was send.", 3000, Position.MIDDLE);
     clearFields();
   }
@@ -95,8 +100,12 @@ public class MainView extends VerticalLayout {
     this.setMargin(false);
     this.setSpacing(false);
     this.setDefaultHorizontalComponentAlignment(Alignment.CENTER);
-    to = new TextField("To:");
+    to = new ComboBox<>("To");
     to.setWidth("50%");
+    to.setItems(contactService.findAll());
+    ItemLabelGenerator<Contact> contactItemLabelGenerator = (ItemLabelGenerator<Contact>) contact ->
+        contact.getName() + " " + contact.getSurname() + "   (" + contact.getEmail() + ")";
+    to.setItemLabelGenerator(contactItemLabelGenerator);
     from = new TextField("From:");
     from.setWidth("50%");
     subject = new TextField("Subject:");
@@ -152,13 +161,13 @@ public class MainView extends VerticalLayout {
       grid.setItems(contactService.findAll());
       log.info("Contact deleted.");
     });
-    editContact.addClickListener(editEvent ->{
+    editContact.addClickListener(editEvent -> {
       Integer id = selectedGridItem.getId();
       String name = selectedGridItem.getName();
       String surname = selectedGridItem.getSurname();
       String email = selectedGridItem.getEmail();
 
-      Dialog dialog = new AddContactDialog(id,name,surname,email,contactService);
+      Dialog dialog = new AddContactDialog(id, name, surname, email, contactService);
       dialog.open();
       dialog.addDetachListener(ex -> {
         grid.setItems(contactService.findAll());
@@ -181,9 +190,14 @@ public class MainView extends VerticalLayout {
     Dialog dialog = new AddContactDialog(contactService);
     dialog.open();
     dialog.addDetachListener(ex -> {
-      grid.setItems(contactService.findAll());
+      refreshContactsFields();
       log.info("Contact added.");
     });
+  }
+
+  private void refreshContactsFields() {
+    grid.setItems(contactService.findAll());
+    to.setItems(contactService.findAll());
   }
 
   private void initializeHomeContainer() {
