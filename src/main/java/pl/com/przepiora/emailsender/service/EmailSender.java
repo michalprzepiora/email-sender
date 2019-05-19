@@ -21,16 +21,6 @@ public class EmailSender implements Runnable{
     this.emailSender = emailSender;
   }
 
-//  public void sendMessage(EmailMessageForm emailMessageForm){
-//    log.info("Sending e-mail....Thread: {}",Thread.currentThread().getName());
-//    SimpleMailMessage message = new SimpleMailMessage();
-//    message.setTo(emailMessageForm.getTo());
-//    message.setSubject(emailMessageForm.getSubject());
-//    message.setText(emailMessageForm.getMessage());
-//    emailSender.send(message);
-//    log.info("E-mail was send.");
-//  }
-
   public void setEmailMessageForm(EmailMessageForm emailMessageForm) {
     this.emailMessageForm = emailMessageForm;
   }
